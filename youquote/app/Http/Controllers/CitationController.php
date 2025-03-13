@@ -54,7 +54,9 @@ class CitationController extends Controller
     public function show($id)
     {
         try {
-            $citation = Citation::findOrFail($id);
+            $citation             = Citation::findOrFail($id);
+            $citation->popularite = $citation->popularite + 1;
+            $citation->save();
             return response()->json($citation, 200);
 
         } catch (Exception $e) {
@@ -134,9 +136,8 @@ class CitationController extends Controller
     public function filterByLength(Request $request)
     {
         try {
-            $min = $request->input('min')? $request->input('min') : 0;
-            $max = $request->input('max')? $request->input('max') : 1000;
-
+            $min = $request->input('min') ? $request->input('min') : 0;
+            $max = $request->input('max') ? $request->input('max') : 1000;
 
             $citations = Citation::where('nbr_mots', ">=", $min)->where('nbr_mots', "<=", $max)->get();
 
@@ -152,5 +153,22 @@ class CitationController extends Controller
             ], 500);
         }
     }
+
+    // ***************************************************************************************************************************
+
+    public function popularite()
+    {
+        try {
+            $citations = Citation::orderBy('popularite', 'desc')->take(5)->get();
+            return response()->json($citations);
+        } catch (Exception $e) {
+            return response()->json([
+                'message' => 'Erreur interne du serveur',
+                // 'error'   => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    // ***************************************************************************************************************************
 
 }
