@@ -10,3 +10,5 @@ Route::get('/user', function (Request $request) {
 
 
 Route::apiResource('citations',CitationController::class);
+Route::get('citations/random/{count}', [CitationController::class, 'random']);
+Route::post("citations/filter", [CitationController::class, 'filterByLength']);

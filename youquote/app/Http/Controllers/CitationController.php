@@ -5,13 +5,12 @@ use App\Models\Citation;
 use Dotenv\Exception\ValidationException;
 use Exception;
 use Illuminate\Database\Eloquent\Casts\Json;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
 class CitationController extends Controller
 {
-    /**
+    /** ***************************************************************************************************************************
      * Display a listing of the resource.
      */
     public function index()
@@ -19,7 +18,7 @@ class CitationController extends Controller
         return response()->json(Citation::all());
     }
 
-    /**
+    /** ***************************************************************************************************************************
      * Store a newly created resource in storage.
      */
     public function store(Request $request)
@@ -49,7 +48,7 @@ class CitationController extends Controller
 
     }
 
-    /**
+    /** ***************************************************************************************************************************
      * Display the specified resource.
      */
     public function show($id)
@@ -63,7 +62,7 @@ class CitationController extends Controller
         }
     }
 
-    /**
+    /** ***************************************************************************************************************************
      * Update the specified resource in storage.
      */
     public function update(Request $request, string $id)
@@ -93,22 +92,65 @@ class CitationController extends Controller
         }
     }
 
-    /**
+    /** ***************************************************************************************************************************
      * Remove the specified resource from storage.
      */
     public function destroy(string $id)
     {
-        try{
+        try {
             $citation = Citation::findOrFail($id);
-            $delete = $citation->delete();
+            $delete   = $citation->delete();
 
             if (! $delete) {
-                return response()->json(['message'=> 'La suppression n\'est pas effectue'], 500);
+                return response()->json(['message' => 'La suppression n\'est pas effectue'], 500);
             }
-            return response()->json(['message'=> 'La suppression a été bien effectue', 'citation' => $citation], 200);
+            return response()->json(['message' => 'La suppression a été bien effectue', 'citation' => $citation], 200);
 
-        }catch (Exception $e) {
+        } catch (Exception $e) {
             return response()->json(['message' => 'Erreur interne du serveur'], 500);
         }
     }
+
+    // ***************************************************************************************************************************
+    public function random(Request $request)
+    {
+        $count = $request->route('count', 1);
+
+        if ($count < 1) {
+            return response()->json(['error' => 'Le paramètre count doit être supérieur ou égal à 1'], 400);
+        }
+
+        $citations = Citation::inRandomOrder()->take($count)->get();
+
+        if ($citations->isEmpty()) {
+            return response()->json(['error' => 'Aucune citation trouvée'], 404);
+        }
+
+        return response()->json($citations, 200);
+    }
+
+    // ***************************************************************************************************************************
+
+    public function filterByLength(Request $request)
+    {
+        try {
+            $min = $request->input('min')? $request->input('min') : 0;
+            $max = $request->input('max')? $request->input('max') : 1000;
+
+
+            $citations = Citation::where('nbr_mots', ">=", $min)->where('nbr_mots', "<=", $max)->get();
+
+            if ($citations->isEmpty()) {
+                return response()->json(['message' => 'Aucune citation trouvée'], 404);
+            }
+
+            return response()->json($citations, 200);
+
+        } catch (Exception $e) {
+            return response()->json([
+                'message' => 'Erreur interne du serveur',
+            ], 500);
+        }
+    }
+
 }
