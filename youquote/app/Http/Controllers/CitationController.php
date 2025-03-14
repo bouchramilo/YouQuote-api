@@ -164,7 +164,6 @@ class CitationController extends Controller
         } catch (Exception $e) {
             return response()->json([
                 'message' => 'Erreur interne du serveur',
-                // 'error'   => $e->getMessage(),
             ], 500);
         }
     }
